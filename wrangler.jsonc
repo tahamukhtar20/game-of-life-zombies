@@ -1,0 +1,10 @@
+// Static site on Cloudflare Workers (assets only, no Worker code).
+// Deploy: npm run build && npx wrangler deploy
+{
+  "name": "gameoflife-z",
+  "compatibility_date": "2026-11-01",
+  "assets": { "directory": "./dist" },
+  "routes": [{ "pattern": "life.tahamukhtar.com", "custom_domain": true }],
+  "workers_dev": false,
+  "preview_urls": false
+}
