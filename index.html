@@ -11,97 +11,62 @@
         />
         <title>Game of Life</title>
     </head>
-    <body class="my-10 flex flex-col items-center justify-center bg-gray-900 text-gray-100">
-        <div class="mb-6 text-center">
-            <h1 class="mb-2 text-7xl font-bold">Conway's Game of Life</h1>
-            <p class="text-lg text-gray-400">Click on cells to toggle states. Press Start to begin simulation!</p>
-        </div>
-        <div class="flex flex-col items-center space-y-4">
-            <!-- Simulation Speed Slider -->
-            <label for="speedRange" class="flex flex-col text-lg text-gray-300">
-                <p><span> Simulation Speed: </span> <span id="speedValue">500ms</span></p>
-                <input
-                    id="speedRange"
-                    type="range"
-                    min="100"
-                    max="1000"
-                    step="50"
-                    value="500"
-                    class="w-64 appearance-none overflow-hidden rounded-lg bg-gray-800 shadow-lg focus:outline-none"
-                />
-            </label>
+    <body class="min-h-screen bg-gray-900 px-4 py-8 text-gray-100 sm:py-10">
+        <main class="mx-auto flex max-w-5xl flex-col items-center gap-5">
+            <header class="text-center">
+                <h1 class="text-5xl leading-none font-bold sm:text-7xl">Conway's Game of Life</h1>
+                <p class="mt-2 text-lg text-gray-400">
+                    Click or drag on cells to change them. Press Start to run it.
+                </p>
+            </header>
 
-            <!-- Rows and Columns Sliders -->
-            <div class="flex space-x-4">
-                <div class="flex flex-col text-lg text-gray-300">
-                    <label for="rowsRange">Number of Rows: <span id="rowsValue">50</span></label>
-                    <input
-                        id="rowsRange"
-                        type="range"
-                        min="10"
-                        max="100"
-                        step="1"
-                        value="50"
-                        class="w-64 appearance-none overflow-hidden rounded-lg bg-gray-800 shadow-lg focus:outline-none"
-                    />
-                </div>
-                <div class="flex flex-col text-lg text-gray-300">
-                    <label for="colsRange">Number of Columns: <span id="colsValue">75</span></label>
-                    <input
-                        id="colsRange"
-                        type="range"
-                        min="10"
-                        max="100"
-                        step="1"
-                        value="75"
-                        class="w-64 appearance-none overflow-hidden rounded-lg bg-gray-800 shadow-lg focus:outline-none"
-                    />
-                </div>
+            <!-- Sliders: three across, compact on phones -->
+            <div class="grid w-full max-w-3xl grid-cols-3 gap-3 text-base text-gray-300 sm:gap-5 sm:text-lg">
+                <label for="speedRange" class="flex flex-col gap-1">
+                    <span>Speed: <span id="speedValue">150ms</span></span>
+                    <input id="speedRange" type="range" min="20" max="1000" step="10" value="150" class="w-full" />
+                </label>
+                <label for="rowsRange" class="flex flex-col gap-1">
+                    <span>Rows: <span id="rowsValue">50</span></span>
+                    <input id="rowsRange" type="range" min="10" max="250" step="1" value="50" class="w-full" />
+                </label>
+                <label for="colsRange" class="flex flex-col gap-1">
+                    <span>Columns: <span id="colsValue">75</span></span>
+                    <input id="colsRange" type="range" min="10" max="250" step="1" value="75" class="w-full" />
+                </label>
             </div>
 
-            <!-- Game Canvas -->
-            <canvas id="gameCanvas" class="border border-gray-700 bg-gray-800 shadow-lg"></canvas>
+            <!-- The canvas sizes itself to this box (see Renderer.fit) -->
+            <div class="flex w-full justify-center">
+                <canvas id="gameCanvas" class="touch-none shadow-lg ring-1 ring-gray-700"></canvas>
+            </div>
 
-            <!-- Infection Mode Toggle -->
-            <label for="toggleInfection" class="flex gap-2 text-lg text-gray-300">
-                Infection Mode:
-                <input id="toggleInfection" type="checkbox" class="h-6 w-6" />
+            <label for="toggleInfection" class="flex items-center gap-2 text-lg text-gray-300">
+                Infection mode
+                <input id="toggleInfection" type="checkbox" class="h-5 w-5" />
             </label>
 
-            <!-- Control Buttons -->
-            <div class="flex space-x-4">
-                <button
-                    id="startButton"
-                    class="rounded bg-green-600 px-4 py-2 text-xl text-white shadow hover:bg-green-700"
-                >
+            <div class="flex flex-wrap justify-center gap-2 text-lg">
+                <button id="startButton" class="rounded bg-green-600 px-4 py-1.5 text-white shadow hover:bg-green-700">
                     Start
                 </button>
-                <button
-                    id="stopButton"
-                    class="rounded bg-yellow-600 px-4 py-2 text-xl text-white shadow hover:bg-yellow-700"
-                >
+                <button id="stopButton" class="rounded bg-yellow-600 px-4 py-1.5 text-white shadow hover:bg-yellow-700">
                     Stop
                 </button>
-                <button
-                    id="resetButton"
-                    class="rounded bg-red-600 px-4 py-2 text-xl text-white shadow hover:bg-red-700"
-                >
+                <button id="resetButton" class="rounded bg-red-600 px-4 py-1.5 text-white shadow hover:bg-red-700">
                     Reset
                 </button>
-                <button
-                    id="randomizeButton"
-                    class="rounded bg-blue-400 px-4 py-2 text-xl text-white shadow hover:bg-blue-500"
-                >
+                <button id="randomizeButton" class="rounded bg-blue-400 px-4 py-1.5 text-white shadow hover:bg-blue-500">
                     Randomize
                 </button>
                 <button
                     id="randomPatternButton"
-                    class="rounded bg-purple-600 px-4 py-2 text-xl text-white shadow hover:bg-purple-700"
+                    class="rounded bg-purple-600 px-4 py-1.5 text-white shadow hover:bg-purple-700"
                 >
-                    Random Patterns
+                    Random patterns
                 </button>
             </div>
-        </div>
+        </main>
         <script type="module" src="./src/main.ts"></script>
     </body>
 </html>

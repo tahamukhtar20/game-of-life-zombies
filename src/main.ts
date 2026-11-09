@@ -1,116 +1,133 @@
-import './index.css'
-import { GameOfLife, renderGrid } from './setup';
+import "./index.css";
+import { GameOfLife, Renderer } from "./setup";
 
-const canvas = document.getElementById("gameCanvas") as HTMLCanvasElement;
-const startButton = document.getElementById("startButton") as HTMLButtonElement;
-const stopButton = document.getElementById("stopButton") as HTMLButtonElement;
-const resetButton = document.getElementById("resetButton") as HTMLButtonElement;
-const randomizeButton = document.getElementById("randomizeButton") as HTMLButtonElement;
-const randomPatternButton = document.getElementById("randomPatternButton") as HTMLButtonElement;
-const speedRange = document.getElementById("speedRange") as HTMLInputElement;
-const speedValue = document.getElementById("speedValue") as HTMLSpanElement;
-const toggleInfection = document.getElementById("toggleInfection") as HTMLInputElement;
-const rowsRange = document.getElementById("rowsRange") as HTMLInputElement;
-const colsRange = document.getElementById("colsRange") as HTMLInputElement;
-const rowsValue = document.getElementById("rowsValue") as HTMLSpanElement;
-const colsValue = document.getElementById("colsValue") as HTMLSpanElement;
+const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+const canvas = $<HTMLCanvasElement>("gameCanvas");
+const speedRange = $<HTMLInputElement>("speedRange");
+const rowsRange = $<HTMLInputElement>("rowsRange");
+const colsRange = $<HTMLInputElement>("colsRange");
+const toggleInfection = $<HTMLInputElement>("toggleInfection");
 
-let interval: any = null;
-let speed = parseInt(speedRange.value);
-let rows = parseInt(rowsRange.value);
-let cols = parseInt(colsRange.value);
-let game = new GameOfLife(rows, cols);
+// Phones start with a smaller grid, so cells are big enough to tap.
+if (window.innerWidth < 640) {
+  rowsRange.value = "36";
+  colsRange.value = "30";
+}
+
+let speed = Number(speedRange.value);
+const game = new GameOfLife(Number(rowsRange.value), Number(colsRange.value));
+const renderer = new Renderer(
+  canvas,
+  { dead: "#ffffff", alive: "#000000", infected: "#ef4444", line: "rgba(0,0,0,0.18)" },
+  () => Math.max(240, window.innerHeight * 0.65),
+);
+
+function showValues() {
+  $("speedValue").textContent = `${speed}ms`;
+  $("rowsValue").textContent = String(game.rows);
+  $("colsValue").textContent = String(game.cols);
+}
+
+// One requestAnimationFrame loop: steps the game when `speed` ms have passed and redraws
+// only when something changed.
+let running = false;
+let dirty = true;
+let last = 0;
+let acc = 0;
+function frame(now: number) {
+  if (running) {
+    acc += now - last;
+    if (acc >= speed) {
+      game.nextGeneration();
+      acc = Math.min(acc - speed, speed); // never build up a backlog of steps
+      dirty = true;
+    }
+  }
+  last = now;
+  if (dirty) {
+    renderer.draw(game);
+    dirty = false;
+  }
+  requestAnimationFrame(frame);
+}
+
+function fit() {
+  renderer.fit(game.rows, game.cols);
+  dirty = true;
+}
+
+let fitQueued = false;
+function queueFit() {
+  if (fitQueued) return;
+  fitQueued = true;
+  requestAnimationFrame(() => {
+    fitQueued = false;
+    fit();
+  });
+}
+new ResizeObserver(queueFit).observe(canvas.parentElement!);
+window.addEventListener("resize", queueFit);
+
+// Click or tap toggles a cell; dragging paints the state the first cell took.
+let paint: number | null = null;
+let lastCell = -1;
+canvas.addEventListener("pointerdown", (e) => {
+  const hit = renderer.cellAt(e.clientX, e.clientY);
+  if (!hit) return;
+  canvas.setPointerCapture(e.pointerId);
+  game.toggleCell(hit[0], hit[1]);
+  paint = game.get(hit[0], hit[1]);
+  lastCell = hit[0] * game.cols + hit[1];
+  dirty = true;
+});
+canvas.addEventListener("pointermove", (e) => {
+  if (paint === null) return;
+  const hit = renderer.cellAt(e.clientX, e.clientY);
+  if (!hit) return;
+  const key = hit[0] * game.cols + hit[1];
+  if (key === lastCell) return;
+  lastCell = key;
+  game.set(hit[0], hit[1], paint);
+  dirty = true;
+});
+const endPaint = () => (paint = null);
+canvas.addEventListener("pointerup", endPaint);
+canvas.addEventListener("pointercancel", endPaint);
 
 speedRange.addEventListener("input", () => {
-  speed = parseInt(speedRange.value);
-  speedValue.textContent = `${speed}ms`;
-
-  if (interval) {
-    clearInterval(interval);
-    interval = setInterval(simulate, speed);
-  }
+  speed = Number(speedRange.value);
+  showValues();
 });
 
-rowsRange.addEventListener("input", () => {
-  rows = parseInt(rowsRange.value);
-  rowsValue.textContent = rows.toString();
-  if (interval) {
-    clearInterval(interval);
-    interval = null;
-  }
-  game = new GameOfLife(rows, cols);
-  renderGrid(canvas, game.getGrid());
-});
-
-colsRange.addEventListener("input", () => {
-  cols = parseInt(colsRange.value);
-  colsValue.textContent = cols.toString();
-  if (interval) {
-    clearInterval(interval);
-    interval = null;
-  }
-  game = new GameOfLife(rows, cols);
-  renderGrid(canvas, game.getGrid());
-});
-
-function update() {
-  renderGrid(canvas, game.getGrid());
-}
-
-function simulate() {
-  game.nextGeneration();
-  update();
-}
-
-canvas.addEventListener("click", (event) => {
-  const rect = canvas.getBoundingClientRect();
-  const cellSize = canvas.width / cols;
-  const col = Math.floor((event.clientX - rect.left) / cellSize);
-  const row = Math.floor((event.clientY - rect.top) / cellSize);
-
-  game.toggleCell(row, col);
-  update();
-});
-
-stopButton.addEventListener("click", () => {
-  if (interval) {
-    clearInterval(interval);
-    interval = null;
-  }
-});
-
-startButton.addEventListener("click", () => {
-  if (!interval) {
-    interval = setInterval(simulate, speed);
-  }
-});
-
-resetButton.addEventListener("click", () => {
-  if (interval) {
-    clearInterval(interval);
-    interval = null;
-  }
-  game.reset();
-  update();
-});
-
-randomizeButton.addEventListener("click", () => {
-  game.randomize();
-  update();
-});
-
-randomPatternButton.addEventListener("click", () => {
-  game.placeRandomPatterns();
-  update();
-});
+const resize = () => {
+  game.resize(Number(rowsRange.value), Number(colsRange.value));
+  showValues();
+  fit();
+};
+rowsRange.addEventListener("input", resize);
+colsRange.addEventListener("input", resize);
 
 toggleInfection.addEventListener("change", () => {
-  if (toggleInfection.checked) {
-    game.infectionEnabled = true;
-  } else {
-    game.infectionEnabled = false;
-  }
-  update();
+  game.infectionEnabled = toggleInfection.checked;
+  dirty = true;
 });
 
-update();
+$("startButton").addEventListener("click", () => (running = true));
+$("stopButton").addEventListener("click", () => (running = false));
+$("resetButton").addEventListener("click", () => {
+  running = false;
+  game.reset();
+  dirty = true;
+});
+$("randomizeButton").addEventListener("click", () => {
+  game.randomize();
+  dirty = true;
+});
+$("randomPatternButton").addEventListener("click", () => {
+  game.placeRandomPatterns();
+  dirty = true;
+});
+
+showValues();
+fit();
+requestAnimationFrame(frame);
