@@ -47,3 +47,7 @@ The site is a static Cloudflare Worker (assets only), configured in `wrangler.js
 npm run build
 npx wrangler deploy
 ```
+
+## License
+
+MIT, see [LICENSE](LICENSE).
