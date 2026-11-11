@@ -1,133 +1,49 @@
 # Game of Life Zombies
 
-This project is a dynamic implementation of Conway's Game of Life with additional custom rules for an infection mechanic. The simulation is built with TypeScript and features configurable grid states, random patterns, and an interactive grid rendering system.
+Conway's Game of Life in the browser, with an optional infection rule that adds a third cell state. Built with Vite, TypeScript and Tailwind, drawn on a canvas.
 
-Hosted at: [life.tahamukhtar.com](https://life.tahamukhtar.com/)
----
+Live at [life.tahamukhtar.com](https://life.tahamukhtar.com/).
 
-## Features
+## Rules
 
-### **Classic and Custom Rules**
+Cells are dead (white), alive (black) or infected (red). Each cell looks at its eight neighbours. The grid edges do not wrap.
 
-- Implements the traditional Game of Life rules.
-- Adds new infection mechanics for more complex and chaotic interactions.
+With infection mode off, the classic rules apply:
 
-### **States**
+- A live cell with 2 or 3 live neighbours survives, otherwise it dies.
+- A dead cell with exactly 3 live neighbours becomes alive.
 
-- **Dead (0):** The cell is not alive.
-- **Alive (1):** The cell is alive.
-- **Infected (2):** The cell is alive but infected, with additional rules for recovery and random death.
+With infection mode on, these are added:
 
-### **Custom Behaviors**
+- A live cell that would die becomes infected if it has more infected than live neighbours.
+- Any live cell becomes infected at random with probability 0.02 per generation.
+- An infected cell with no live or infected neighbours dies.
+- An infected cell stays infected if it has equal numbers of live and infected neighbours, recovers if live neighbours outnumber infected ones, and dies otherwise.
+- After that, an infected cell recovers at random with probability 0.02 and dies at random with probability 0.1 (the random death wins if both happen).
 
-- **Infection Mechanic:** Toggleable infection behaviour.
-- **Random Patterns:** Automatically generates random placements of classic patterns like Gliders, Blinkers, and R-pentomino.
-- **Interactive Grid:** Click to cycle cell states between Dead, Alive, and Infected.
-- **Randomization:** Initialize the grid with randomized states.
+Infected cells do not count towards births. Turning infection mode off turns every infected cell back into a live cell.
 
-### **Custom Rendering**
+## Controls
 
-- **Cell Colors:**
-  - Dead: White
-  - Alive: Black
-  - Infected: Red
-- Renders cells dynamically on an HTML canvas.
+- Click or tap a cell to cycle its state (dead, alive, and infected when infection mode is on). Dragging paints the state the first cell took.
+- Start and Stop run and pause the simulation. Reset clears the grid.
+- Randomize fills the grid with random states. Random patterns places gliders, blinkers and R-pentominoes, more of them on larger grids.
+- Sliders set the step interval (20 to 1000 ms) and the grid size (10 to 250 rows and columns). Phones start with a smaller grid.
 
----
+The canvas resizes to fit the window and stays sharp on high-DPI screens.
 
-## Installation
-
-### **Prerequisites**
-
-Ensure you have the following installed:
-
-- **Node.js**
-- **npm** or **yarn**
-
-### **Clone the Repository**
-
-```bash
-git clone https://github.com/tahamukhtar20/gameoflife-z.git
-cd gameoflife-z
-```
-
-### **Install Dependencies**
+## Run locally
 
 ```bash
 npm install
+npm run dev
 ```
 
----
+## Deploy
 
-## Usage
-
-### **Start the Project**
-
-Run the following command to start the simulation:
+The site is a static Cloudflare Worker (assets only), configured in `wrangler.jsonc`.
 
 ```bash
-npm start
+npm run build
+npx wrangler deploy
 ```
-
-This will launch the game in your default browser.
-
----
-
-## Game Rules
-
-### **Alive Cells (1)**
-
-- Survive with 2 or 3 alive neighbors.
-- Become infected if:
-  - Infected neighbours> Alive neighbours (infection enabled).
-  - Random infection event (2% probability).
-- Die due to:
-  - Underpopulation (fewer than 2 alive neighbours).
-  - Overpopulation (more than 3 alive neighbours).
-
-### **Infected Cells (2)**
-
-- Die if no neighbours (alive or infected).
-- Remain infected if infected neighbours = alive neighbours.
-- Recover to alive if alive neighbours> infected neighbours.
-- Randomly recover (2% probability) or die (10% probability).
-
-### **Dead Cells (0)**
-
-- Become alive if exactly 3 neighbours are alive.
-
----
-
-## Contributing
-
-Contributions are welcome! If you have ideas for new features or optimizations, open an issue or create a pull request.
-
-### **Steps to Contribute**
-
-1. Fork the repository.
-2. Create a new branch:
-   ```bash
-   git checkout -b feature-name
-   ```
-3. Make your changes and commit them:
-   ```bash
-   git commit -m "Add feature-name"
-   ```
-4. Push to your branch:
-   ```bash
-   git push origin feature-name
-   ```
-5. Open a pull request.
-
----
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-## Acknowledgements
-
-- Inspired by Conway's Game of Life.
-- Extended with infection mechanics for added complexity and experimentation.
